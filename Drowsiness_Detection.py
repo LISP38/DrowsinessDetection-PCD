@@ -10,7 +10,7 @@ import threading
 import time
 
 class DrowsinessDetector:
-    def __init__(self,
+    def _init_(self,
                  eye_ar_thresh=0.40,  # Threshold for eye closure
                  mouth_ar_thresh=0.7,  # Threshold for yawning
                  head_movement_thresh=0.1,  # Normalized threshold for head movement
@@ -407,7 +407,7 @@ class DrowsinessDetector:
             pass
         self.face_mesh.close()
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     print("[DEBUG] DrowsinessDetector instance created")
     detector = DrowsinessDetector(
         eye_ar_thresh=0.40,
