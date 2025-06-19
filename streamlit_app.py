@@ -70,6 +70,84 @@ def display_detection_result(result):
         st.metric("Drowsiness Score", f"{result['drowsiness_score']}")
     
     with col3:
+        # Ubah dari 'confidence' ke 'status'
+        st.metric("Status", result.get('status', 'Unknown'))
+    
+    with col4:
+        # Perbaiki logika face detection
+        face_detected = result.get('face_detected', result.get('status') != "No Face Detected")
+        face_status = "✅ Detected" if face_detected else "❌ Not Detected"
+        st.metric("Face", face_status)
+    
+    # Metrics - sesuaikan dengan struktur response FastAPI
+    st.subheader("📊 Detection Metrics")
+    metrics_col1, metrics_col2, metrics_col3 = st.columns(3)
+    
+    with metrics_col1:
+        ear_value = result['metrics']['ear']
+        st.metric(
+            "Eye Aspect Ratio (EAR)", 
+            f"{ear_value:.3f}",
+            help="Lower values indicate closed/droopy eyes"
+        )
+        if ear_value < 0.19:
+            st.warning("Eyes appear closed/droopy")
+    
+    with metrics_col2:
+        mar_value = result['metrics']['mar']
+        st.metric(
+            "Mouth Aspect Ratio (MAR)", 
+            f"{mar_value:.3f}",
+            help="Higher values indicate yawning"
+        )
+        if mar_value > 0.6:
+            st.warning("Yawning detected")
+    
+    with metrics_col3:
+        head_movement = result['metrics']['head_movement']
+        st.metric(
+            "Head Movement", 
+            f"{head_movement:.3f}",
+            help="Excessive head movement may indicate drowsiness"
+        )
+        if head_movement > 8:
+            st.warning("Excessive head movement")
+    
+    # Alerts - gunakan alerts dari FastAPI
+    if result.get('alerts'):
+        st.subheader("🚨 Alerts")
+        for alert in result['alerts']:
+            st.warning(f"• {alert}")
+    
+    # Processed image - sesuaikan dengan key yang benar
+    image_key = 'processed_image' if 'processed_image' in result else 'processed_frame'
+    if image_key in result:
+        st.subheader("🖼️ Processed Image")
+        try:
+            # Decode base64 image
+            image_data = base64.b64decode(result[image_key])
+            image = Image.open(io.BytesIO(image_data))
+            st.image(image, caption="Detection Result", use_column_width=True)
+        except Exception as e:
+            st.error(f"Error displaying processed image: {e}")
+    """Display detection results in a nice format"""
+    if not result or not result.get('success'):
+        st.error("Failed to get detection result")
+        return
+    
+    # Main status
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if result['drowsiness_detected']:
+            st.error("⚠️ DROWSINESS DETECTED!")
+        else:
+            st.success("✅ Alert")
+    
+    with col2:
+        st.metric("Drowsiness Score", f"{result['drowsiness_score']}")
+    
+    with col3:
         st.metric("Confidence", f"{result.get('confidence', 0):.2f}")
     
     with col4:
